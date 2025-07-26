@@ -544,6 +544,118 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+        
+        /* Modal styles */
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background-color: var(--bg-secondary);
+            margin: 15% auto;
+            padding: 30px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .close-modal {
+            color: var(--text-secondary);
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+        
+        .close-modal:hover,
+        .close-modal:focus {
+            color: var(--text-primary);
+        }
+        
+        .settings-options {
+            margin-top: 20px;
+        }
+        
+        .warning-text {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            margin-top: 10px;
+            font-style: italic;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ff4757, #ff3742);
+            color: white;
+            border: none;
+        }
+        
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #ff3335, #ff1e30);
+            transform: translateY(-2px);
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* Board Controls */
+        .board-controls {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        
+        .notation-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-primary));
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            color: var(--text-primary);
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .notation-toggle:hover {
+            background: linear-gradient(135deg, var(--accent-color), var(--accent-color-hover));
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .notation-toggle.active {
+            background: linear-gradient(135deg, var(--accent-color-hover), var(--accent-color));
+            color: white;
+        }
+        
+        .toggle-icon {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 0.8em;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        
+        .toggle-text {
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -587,8 +699,8 @@
                     <span class="stat-value" id="total-correct">0</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">Average Time</span>
-                    <span class="stat-value" id="average-time">0.0s</span>
+                    <span class="stat-label">Highest Score</span>
+                    <span class="stat-value" id="highest-score">0</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-label">Level Progress</span>
@@ -601,6 +713,12 @@
 
             <!-- Chess Board -->
             <section class="chess-container">
+                <div class="board-controls">
+                    <button id="notation-toggle" class="notation-toggle" title="Toggle board notation (a-h, 1-8)">
+                        <span class="toggle-icon">abc</span>
+                        <span class="toggle-text">Hide Notation</span>
+                    </button>
+                </div>
                 <div class="chessboard-wrapper">
                     <canvas id="chessboard" width="480" height="480" role="img" aria-label="Chess board for nomenclature practice">
                         <p>Your browser does not support the HTML5 canvas element. Please upgrade to a modern browser to play this game.</p>
@@ -637,6 +755,7 @@
                             <button class="btn btn-secondary" id="skip-question" disabled>Skip</button>
                             <button class="btn btn-secondary" id="toggle-mode" disabled>Switch Mode</button>
                             <button class="btn btn-secondary" id="hint" disabled>Hint</button>
+                            <button class="btn btn-secondary" id="settings">⚙️ Settings</button>
                         </div>
                     </div>
                     
@@ -668,6 +787,10 @@
                     <span class="stat-label">Current Mode</span>
                     <span class="stat-value" id="current-mode">Square → Notation</span>
                 </div>
+                <div class="stat-item">
+                    <span class="stat-label">Average Time</span>
+                    <span class="stat-value" id="average-time">0.0s</span>
+                </div>
                 <div class="progress-bar" role="progressbar" aria-label="Session Progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
                     <div class="progress-fill" id="session-progress-bar" style="width: 0%"></div>
                 </div>
@@ -678,6 +801,18 @@
     <!-- Hidden elements for screen readers -->
     <div class="sr-only" aria-live="polite" id="game-status"></div>
     <div class="sr-only" aria-live="polite" id="board-description"></div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Settings</h2>
+            <div class="settings-options">
+                <button id="reset-progress" class="btn btn-danger">🗑️ Reset All Progress</button>
+                <p class="warning-text">This will permanently delete all your learning progress and return you to Level 1.</p>
+            </div>
+        </div>
+    </div>
 
     <script>
         /**
@@ -717,7 +852,9 @@
                 this.score = 0;
                 this.streak = 0;
                 this.bestStreak = 0;
+                this.highestScore = 0;
                 this.accuracy = 100;
+                this.showNotation = true;
                 this.isGameActive = false;
                 this.challengeStartTime = null;
                 this.sessionStartTime = null;
@@ -746,9 +883,11 @@
                 const data = {
                     stats: this.stats,
                     bestStreak: this.bestStreak,
+                    highestScore: this.highestScore,
                     squarePerformance: Array.from(this.squarePerformance.entries()),
                     difficulty: this.difficulty,
-                    levelProgress: this.levelProgress
+                    levelProgress: this.levelProgress,
+                    showNotation: this.showNotation
                 };
                 localStorage.setItem('chessNomenclatureGame', JSON.stringify(data));
             }
@@ -759,9 +898,11 @@
                     if (data) {
                         this.stats = { ...this.stats, ...data.stats };
                         this.bestStreak = data.bestStreak || 0;
+                        this.highestScore = data.highestScore || 0;
                         this.squarePerformance = new Map(data.squarePerformance || []);
                         this.difficulty = data.difficulty || 1;
                         this.levelProgress = data.levelProgress || 0;
+                        this.showNotation = data.showNotation !== undefined ? data.showNotation : true;
                     }
                 } catch (e) {
                     console.warn('Could not load game data from storage:', e);
@@ -873,6 +1014,7 @@
                 this.highlightedSquare = null;
                 this.animationFrame = null;
                 this.pulseTime = 0;
+                this.showNotation = true;
             }
 
             setupCanvas() {
@@ -909,7 +1051,11 @@
                     }
                 }
 
-                this.drawCoordinates();
+                // Only draw coordinates if notation is enabled
+                if (this.showNotation) {
+                    this.drawCoordinates();
+                }
+                
                 this.drawHighlight();
             }
 
@@ -1064,6 +1210,7 @@
                 this.audioManager = new AudioManager();
                 this.bindElements();
                 this.setupEventListeners();
+                this.initializeNotationToggle();
                 this.updateUI();
                 this.startSessionTimer();
             }
@@ -1077,6 +1224,11 @@
                     skipButton: document.getElementById('skip-question'),
                     toggleModeButton: document.getElementById('toggle-mode'),
                     hintButton: document.getElementById('hint'),
+                    settingsButton: document.getElementById('settings'),
+                    settingsModal: document.getElementById('settings-modal'),
+                    closeModalButton: document.querySelector('.close-modal'),
+                    resetProgressButton: document.getElementById('reset-progress'),
+                    notationToggle: document.getElementById('notation-toggle'),
                     feedbackElement: document.getElementById('feedback-message'),
                     
                     // Score displays
@@ -1093,6 +1245,7 @@
                     gamesPlayed: document.getElementById('games-played'),
                     bestStreak: document.getElementById('best-streak'),
                     totalCorrect: document.getElementById('total-correct'),
+                    highestScore: document.getElementById('highest-score'),
                     averageTime: document.getElementById('average-time'),
                     levelProgress: document.getElementById('level-progress'),
                     levelProgressBar: document.getElementById('level-progress-bar'),
@@ -1114,6 +1267,10 @@
                 this.elements.skipButton.addEventListener('click', () => this.skipQuestion());
                 this.elements.toggleModeButton.addEventListener('click', () => this.toggleMode());
                 this.elements.hintButton.addEventListener('click', () => this.showHint());
+                this.elements.settingsButton.addEventListener('click', () => this.openSettings());
+                this.elements.closeModalButton.addEventListener('click', () => this.closeSettings());
+                this.elements.resetProgressButton.addEventListener('click', () => this.resetAllProgress());
+                this.elements.notationToggle.addEventListener('click', () => this.toggleNotation());
 
                 // Input handling
                 this.elements.notationInput.addEventListener('keypress', (e) => {
@@ -1156,6 +1313,30 @@
                     this.renderer.setupCanvas();
                     this.renderer.drawBoard();
                 });
+                
+                // Close modal when clicking outside
+                this.elements.settingsModal.addEventListener('click', (e) => {
+                    if (e.target === this.elements.settingsModal) {
+                        this.closeSettings();
+                    }
+                });
+            }
+            
+            initializeNotationToggle() {
+                // Sync renderer with game state
+                this.renderer.showNotation = this.gameState.showNotation;
+                
+                // Update button text and state based on loaded preferences
+                const toggleText = this.elements.notationToggle.querySelector('.toggle-text');
+                const toggleButton = this.elements.notationToggle;
+                
+                if (this.gameState.showNotation) {
+                    toggleText.textContent = 'Hide Notation';
+                    toggleButton.classList.remove('active');
+                } else {
+                    toggleText.textContent = 'Show Notation';
+                    toggleButton.classList.add('active');
+                }
             }
 
             startNewGame() {
@@ -1295,6 +1476,11 @@
                 
                 this.gameState.score += points;
                 
+                // Update highest score
+                if (this.gameState.score > this.gameState.highestScore) {
+                    this.gameState.highestScore = this.gameState.score;
+                }
+                
                 // Update best streak
                 if (this.gameState.streak > this.gameState.bestStreak) {
                     this.gameState.bestStreak = this.gameState.streak;
@@ -1317,7 +1503,7 @@
                 setTimeout(() => {
                     this.elements.notationInput.classList.remove('correct');
                     this.generateChallenge();
-                }, 1000);
+                }, 400);
 
                 this.updateUI();
                 this.gameState.saveToStorage();
@@ -1347,7 +1533,7 @@
                 setTimeout(() => {
                     this.elements.notationInput.classList.remove('incorrect');
                     this.generateChallenge();
-                }, 1500);
+                }, 600);
 
                 this.updateUI();
                 this.gameState.saveToStorage();
@@ -1373,6 +1559,31 @@
                 if (this.gameState.isGameActive) {
                     this.generateChallenge();
                 }
+            }
+            
+            toggleNotation() {
+                this.gameState.showNotation = !this.gameState.showNotation;
+                
+                // Update renderer's notation visibility
+                this.renderer.showNotation = this.gameState.showNotation;
+                
+                // Update button text and state
+                const toggleText = this.elements.notationToggle.querySelector('.toggle-text');
+                const toggleButton = this.elements.notationToggle;
+                
+                if (this.gameState.showNotation) {
+                    toggleText.textContent = 'Hide Notation';
+                    toggleButton.classList.remove('active');
+                } else {
+                    toggleText.textContent = 'Show Notation';
+                    toggleButton.classList.add('active');
+                }
+                
+                // Redraw the board with/without notation
+                this.renderer.drawBoard();
+                
+                // Save state
+                this.gameState.saveToStorage();
             }
 
             showHint() {
@@ -1419,6 +1630,46 @@
             clearFeedback() {
                 this.elements.feedbackElement.classList.remove('show');
             }
+            
+            openSettings() {
+                this.elements.settingsModal.style.display = 'block';
+            }
+            
+            closeSettings() {
+                this.elements.settingsModal.style.display = 'none';
+            }
+            
+            resetAllProgress() {
+                if (confirm('Are you sure you want to reset all progress? This action cannot be undone.')) {
+                    // Clear localStorage
+                    localStorage.removeItem('chessNomenclatureGame');
+                    
+                    // Reset game state to defaults
+                    this.gameState.difficulty = 1;
+                    this.gameState.levelProgress = 0;
+                    this.gameState.squarePerformance.clear();
+                    this.gameState.recentMistakes = [];
+                    this.gameState.stats = {
+                        questionsAnswered: 0,
+                        correctAnswers: 0,
+                        wrongAnswers: 0,
+                        gamesPlayed: 0,
+                        totalTime: 0,
+                        sessionTime: 0
+                    };
+                    this.gameState.bestStreak = 0;
+                    this.gameState.highestScore = 0;
+                    this.gameState.score = 0;
+                    this.gameState.streak = 0;
+                    this.gameState.showNotation = true;
+                    
+                    // Update UI and close modal
+                    this.initializeNotationToggle();
+                    this.updateUI();
+                    this.closeSettings();
+                    this.showFeedback('All progress has been reset to Level 1!', 'success');
+                }
+            }
 
             startSessionTimer() {
                 setInterval(() => {
@@ -1461,6 +1712,7 @@
                 this.elements.gamesPlayed.textContent = this.gameState.stats.gamesPlayed;
                 this.elements.bestStreak.textContent = this.gameState.bestStreak;
                 this.elements.totalCorrect.textContent = this.gameState.stats.correctAnswers;
+                this.elements.highestScore.textContent = this.gameState.highestScore;
                 
                 // Average time
                 const avgTime = this.gameState.stats.correctAnswers > 0
