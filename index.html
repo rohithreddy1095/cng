@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess Nomenclature Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-bg: #1a1a2e;
+            --secondary-bg: #16213e;
+            --accent-bg: #0f3460;
+            --success-color: #4ade80;
+            --error-color: #f87171;
+            --warning-color: #fbbf24;
+            --text-primary: #ffffff;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --highlight-color: #3b82f6;
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-success: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            --gradient-accent: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: var(--secondary-bg);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .title {
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .live-score {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .score-item {
+            text-align: center;
+            padding: 0.75rem 1rem;
+            background: var(--accent-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            min-width: 80px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .score-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .score-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--highlight-color);
+            display: block;
+        }
+
+        .score-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Main Game Area */
+        .game-area {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 2rem;
+            flex: 1;
+            align-items: start;
+        }
+
+        .chess-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .chessboard-wrapper {
+            background: var(--secondary-bg);
+            padding: 1.5rem;
+            border-radius: 20px;
+            border: 2px solid var(--border-color);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chessboard-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+        }
+
+        #chessboard {
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            cursor: crosshair;
+            transition: transform 0.2s ease;
+        }
+
+        #chessboard:hover {
+            transform: scale(1.02);
+        }
+
+        /* Challenge Display */
+        .challenge-area {
+            background: var(--secondary-bg);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .challenge-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .challenge-content {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--highlight-color);
+            padding: 1.5rem;
+            background: var(--accent-bg);
+            border-radius: 12px;
+            border: 2px solid var(--border-color);
+            margin-bottom: 1rem;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .challenge-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .challenge-content.highlight::before {
+            left: 100%;
+        }
+
+        .mode-indicator {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: var(--gradient-accent);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .notation-input {
+            flex: 1;
+            padding: 0.875rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--accent-bg);
+            color: var(--text-primary);
+            font-size: 1.125rem;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .notation-input:focus {
+            outline: none;
+            border-color: var(--highlight-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .notation-input.correct {
+            border-color: var(--success-color);
+            background: rgba(74, 222, 128, 0.1);
+        }
+
+        .notation-input.incorrect {
+            border-color: var(--error-color);
+            background: rgba(248, 113, 113, 0.1);
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .btn {
+            padding: 0.875rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.3s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--accent-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-success {
+            background: var(--gradient-success);
+            color: var(--primary-bg);
+        }
+
+        .game-controls {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* Statistics Panel */
+        .stats-panel {
+            background: var(--secondary-bg);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .stats-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+            background: var(--accent-bg);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
+
+        .stat-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-weight: 700;
+            color: var(--highlight-color);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--accent-bg);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--gradient-primary);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Feedback Messages */
+        .feedback {
+            padding: 1rem;
+            border-radius: 12px;
+            margin-top: 1rem;
+            font-weight: 600;
+            text-align: center;
+            transform: translateY(10px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .feedback.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .feedback.success {
+            background: rgba(74, 222, 128, 0.2);
+            color: var(--success-color);
+            border: 1px solid var(--success-color);
+        }
+
+        .feedback.error {
+            background: rgba(248, 113, 113, 0.2);
+            color: var(--error-color);
+            border: 1px solid var(--error-color);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .game-area {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .live-score {
+                justify-content: center;
+            }
+
+            #chessboard {
+                width: min(480px, calc(100vw - 4rem));
+                height: min(480px, calc(100vw - 4rem));
+            }
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 0.75rem;
+            }
+
+            .title {
+                font-size: 1.5rem;
+            }
+
+            .live-score {
+                gap: 1rem;
+            }
+
+            .score-item {
+                min-width: 60px;
+                padding: 0.5rem 0.75rem;
+            }
+
+            .score-value {
+                font-size: 1.25rem;
+            }
+
+            .challenge-content {
+                font-size: 1.5rem;
+                padding: 1rem;
+                min-height: 80px;
+            }
+
+            .notation-input {
+                font-size: 1rem;
+            }
+
+            .btn {
+                padding: 0.75rem 1rem;
+                font-size: 0.8rem;
+            }
+
+            .game-controls {
+                flex-direction: column;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+        }
+
+        /* Accessibility */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Focus indicators */
+        .btn:focus,
+        .notation-input:focus {
+            outline: 2px solid var(--highlight-color);
+            outline-offset: 2px;
+        }
+
+        /* Loading state */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+            position: relative;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+            border: 2px solid var(--text-muted);
+            border-top-color: var(--highlight-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="title">Chess Nomenclature Game</h1>
+                <div class="live-score" role="region" aria-label="Game Statistics">
+                    <div class="score-item">
+                        <span class="score-value" id="current-score" aria-live="polite">0</span>
+                        <span class="score-label">Score</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="score-value" id="accuracy" aria-live="polite">100%</span>
+                        <span class="score-label">Accuracy</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="score-value" id="streak" aria-live="polite">0</span>
+                        <span class="score-label">Streak</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Game Area -->
+        <main class="game-area">
+            <!-- Statistics Panel -->
+            <aside class="stats-panel" role="complementary" aria-label="Player Statistics">
+                <h2 class="stats-title">Player Progress</h2>
+                <div class="stat-item">
+                    <span class="stat-label">Games Played</span>
+                    <span class="stat-value" id="games-played">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Best Streak</span>
+                    <span class="stat-value" id="best-streak">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Total Correct</span>
+                    <span class="stat-value" id="total-correct">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Average Time</span>
+                    <span class="stat-value" id="average-time">0.0s</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Level Progress</span>
+                    <span class="stat-value" id="level-progress">Level 1</span>
+                </div>
+                <div class="progress-bar" role="progressbar" aria-label="Level Progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-fill" id="level-progress-bar" style="width: 0%"></div>
+                </div>
+            </aside>
+
+            <!-- Chess Board -->
+            <section class="chess-container">
+                <div class="chessboard-wrapper">
+                    <canvas id="chessboard" width="480" height="480" role="img" aria-label="Chess board for nomenclature practice">
+                        <p>Your browser does not support the HTML5 canvas element. Please upgrade to a modern browser to play this game.</p>
+                    </canvas>
+                </div>
+                
+                <!-- Challenge Display -->
+                <div class="challenge-area" role="region" aria-label="Current Challenge">
+                    <div class="mode-indicator" id="mode-indicator" aria-live="polite">Square → Notation</div>
+                    <h2 class="challenge-title" id="challenge-title">Find the notation for the highlighted square</h2>
+                    <div class="challenge-content" id="challenge-content" aria-live="polite">Click "New Game" to start</div>
+                    
+                    <!-- Controls -->
+                    <div class="controls">
+                        <div class="input-group">
+                            <label for="notation-input" class="sr-only">Enter chess notation</label>
+                            <input 
+                                type="text" 
+                                id="notation-input" 
+                                class="notation-input" 
+                                placeholder="Enter notation (e.g. e4)" 
+                                maxlength="3"
+                                autocomplete="off"
+                                aria-describedby="feedback-message"
+                                disabled
+                            >
+                            <button class="btn btn-primary" id="submit-answer" disabled>
+                                Submit
+                            </button>
+                        </div>
+                        
+                        <div class="game-controls">
+                            <button class="btn btn-success" id="new-game">New Game</button>
+                            <button class="btn btn-secondary" id="skip-question" disabled>Skip</button>
+                            <button class="btn btn-secondary" id="toggle-mode" disabled>Switch Mode</button>
+                            <button class="btn btn-secondary" id="hint" disabled>Hint</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Feedback -->
+                    <div class="feedback" id="feedback-message" role="status" aria-live="assertive"></div>
+                </div>
+            </section>
+
+            <!-- Additional Stats -->
+            <aside class="stats-panel" role="complementary" aria-label="Detailed Statistics">
+                <h2 class="stats-title">Session Stats</h2>
+                <div class="stat-item">
+                    <span class="stat-label">Session Time</span>
+                    <span class="stat-value" id="session-time">0:00</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Questions Answered</span>
+                    <span class="stat-value" id="questions-answered">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Correct Answers</span>
+                    <span class="stat-value" id="correct-answers">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Wrong Answers</span>
+                    <span class="stat-value" id="wrong-answers">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Current Mode</span>
+                    <span class="stat-value" id="current-mode">Square → Notation</span>
+                </div>
+                <div class="progress-bar" role="progressbar" aria-label="Session Progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-fill" id="session-progress-bar" style="width: 0%"></div>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <!-- Hidden elements for screen readers -->
+    <div class="sr-only" aria-live="polite" id="game-status"></div>
+    <div class="sr-only" aria-live="polite" id="board-description"></div>
+
+    <script>
+        /**
+         * Comprehensive Chess Nomenclature Learning Game Engine
+         * Features: Progressive difficulty, spaced repetition, statistics tracking,
+         * dual game modes, responsive canvas, animations, and accessibility
+         */
+
+        // Game Configuration
+        const CONFIG = {
+            BOARD_SIZE: 480,
+            SQUARE_SIZE: 60,
+            ANIMATION_DURATION: 300,
+            HIGHLIGHT_OPACITY: 0.6,
+            TIMER_DURATION: 15000, // 15 seconds per challenge
+            SPEED_BONUS_THRESHOLD: 5000, // 5 seconds for speed bonus
+            POINTS: {
+                CORRECT: 10,
+                SPEED_BONUS: 5,
+                STREAK_MULTIPLIER: 1.2
+            },
+            DIFFICULTY_LEVELS: {
+                1: { name: 'Corners', squares: ['a1', 'a8', 'h1', 'h8'] },
+                2: { name: 'Edges', squares: ['a1','a2','a3','a4','a5','a6','a7','a8','h1','h2','h3','h4','h5','h6','h7','h8','b1','c1','d1','e1','f1','g1','b8','c8','d8','e8','f8','g8'] },
+                3: { name: 'Center', squares: ['d4','d5','e4','e5','c3','c4','c5','c6','f3','f4','f5','f6'] },
+                4: { name: 'Full Board', squares: null } // null means all squares
+            }
+        };
+
+        // Game State Management
+        class GameState {
+            constructor() {
+                this.mode = 'square-to-notation';
+                this.difficulty = 1;
+                this.currentSquare = null;
+                this.currentNotation = null;
+                this.score = 0;
+                this.streak = 0;
+                this.bestStreak = 0;
+                this.accuracy = 100;
+                this.isGameActive = false;
+                this.challengeStartTime = null;
+                this.sessionStartTime = null;
+                this.timer = null;
+                this.timeRemaining = CONFIG.TIMER_DURATION;
+                
+                // Statistics
+                this.stats = {
+                    gamesPlayed: 0,
+                    questionsAnswered: 0,
+                    correctAnswers: 0,
+                    wrongAnswers: 0,
+                    totalTime: 0,
+                    sessionTime: 0
+                };
+
+                // Progressive difficulty and spaced repetition
+                this.squarePerformance = new Map();
+                this.recentMistakes = [];
+                this.levelProgress = 0;
+                
+                this.loadFromStorage();
+            }
+
+            saveToStorage() {
+                const data = {
+                    stats: this.stats,
+                    bestStreak: this.bestStreak,
+                    squarePerformance: Array.from(this.squarePerformance.entries()),
+                    difficulty: this.difficulty,
+                    levelProgress: this.levelProgress
+                };
+                localStorage.setItem('chessNomenclatureGame', JSON.stringify(data));
+            }
+
+            loadFromStorage() {
+                try {
+                    const data = JSON.parse(localStorage.getItem('chessNomenclatureGame'));
+                    if (data) {
+                        this.stats = { ...this.stats, ...data.stats };
+                        this.bestStreak = data.bestStreak || 0;
+                        this.squarePerformance = new Map(data.squarePerformance || []);
+                        this.difficulty = data.difficulty || 1;
+                        this.levelProgress = data.levelProgress || 0;
+                    }
+                } catch (e) {
+                    console.warn('Could not load game data from storage:', e);
+                }
+            }
+
+            updateSquarePerformance(square, correct, responseTime) {
+                if (!this.squarePerformance.has(square)) {
+                    this.squarePerformance.set(square, {
+                        attempts: 0,
+                        correct: 0,
+                        averageTime: 0,
+                        lastSeen: Date.now(),
+                        repetitionLevel: 0
+                    });
+                }
+
+                const perf = this.squarePerformance.get(square);
+                perf.attempts++;
+                perf.lastSeen = Date.now();
+                
+                if (correct) {
+                    perf.correct++;
+                    perf.repetitionLevel = Math.min(perf.repetitionLevel + 1, 5);
+                } else {
+                    perf.repetitionLevel = Math.max(perf.repetitionLevel - 1, 0);
+                    this.recentMistakes.push({ square, timestamp: Date.now() });
+                    // Keep only recent mistakes (last 10)
+                    if (this.recentMistakes.length > 10) {
+                        this.recentMistakes.shift();
+                    }
+                }
+
+                // Update average time
+                perf.averageTime = (perf.averageTime * (perf.attempts - 1) + responseTime) / perf.attempts;
+            }
+
+            getNextSquare() {
+                let availableSquares = this.getAvailableSquares();
+                
+                // Implement spaced repetition: prioritize mistakes and low-performance squares
+                const now = Date.now();
+                const recentMistakeSquares = this.recentMistakes
+                    .filter(m => now - m.timestamp < 300000) // Last 5 minutes
+                    .map(m => m.square);
+
+                const lowPerformanceSquares = Array.from(this.squarePerformance.entries())
+                    .filter(([square, perf]) => 
+                        availableSquares.includes(square) && 
+                        (perf.correct / perf.attempts < 0.7 || perf.repetitionLevel < 3)
+                    )
+                    .map(([square]) => square);
+
+                // 40% chance for recent mistakes, 30% for low performance, 30% random
+                const rand = Math.random();
+                if (rand < 0.4 && recentMistakeSquares.length > 0) {
+                    return recentMistakeSquares[Math.floor(Math.random() * recentMistakeSquares.length)];
+                } else if (rand < 0.7 && lowPerformanceSquares.length > 0) {
+                    return lowPerformanceSquares[Math.floor(Math.random() * lowPerformanceSquares.length)];
+                } else {
+                    return availableSquares[Math.floor(Math.random() * availableSquares.length)];
+                }
+            }
+
+            getAvailableSquares() {
+                const level = CONFIG.DIFFICULTY_LEVELS[this.difficulty];
+                if (level.squares) {
+                    return level.squares;
+                }
+                
+                // Generate all squares for full board
+                const squares = [];
+                for (let file = 0; file < 8; file++) {
+                    for (let rank = 0; rank < 8; rank++) {
+                        squares.push(String.fromCharCode(97 + file) + (rank + 1));
+                    }
+                }
+                return squares;
+            }
+
+            checkLevelProgression() {
+                const availableSquares = this.getAvailableSquares();
+                let masteredSquares = 0;
+                
+                availableSquares.forEach(square => {
+                    const perf = this.squarePerformance.get(square);
+                    if (perf && perf.attempts >= 3 && perf.correct / perf.attempts >= 0.8) {
+                        masteredSquares++;
+                    }
+                });
+
+                this.levelProgress = (masteredSquares / availableSquares.length) * 100;
+                
+                // Auto-advance to next level if 80% mastery and current level < 4
+                if (this.levelProgress >= 80 && this.difficulty < 4) {
+                    this.difficulty++;
+                    this.levelProgress = 0;
+                    this.showFeedback(`Level Up! Welcome to ${CONFIG.DIFFICULTY_LEVELS[this.difficulty].name}!`, 'success');
+                }
+            }
+        }
+
+        // Canvas Rendering Engine
+        class ChessboardRenderer {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.setupCanvas();
+                this.highlightedSquare = null;
+                this.animationFrame = null;
+                this.pulseTime = 0;
+            }
+
+            setupCanvas() {
+                // Handle high DPI displays
+                const dpr = window.devicePixelRatio || 1;
+                const rect = this.canvas.getBoundingClientRect();
+                
+                this.canvas.width = CONFIG.BOARD_SIZE * dpr;
+                this.canvas.height = CONFIG.BOARD_SIZE * dpr;
+                this.canvas.style.width = CONFIG.BOARD_SIZE + 'px';
+                this.canvas.style.height = CONFIG.BOARD_SIZE + 'px';
+                
+                this.ctx.scale(dpr, dpr);
+                this.squareSize = CONFIG.BOARD_SIZE / 8;
+            }
+
+            drawBoard() {
+                this.ctx.clearRect(0, 0, CONFIG.BOARD_SIZE, CONFIG.BOARD_SIZE);
+                
+                // Draw squares
+                for (let rank = 0; rank < 8; rank++) {
+                    for (let file = 0; file < 8; file++) {
+                        const isLight = (rank + file) % 2 === 0;
+                        const x = file * this.squareSize;
+                        const y = (7 - rank) * this.squareSize;
+                        
+                        this.ctx.fillStyle = isLight ? '#f0d9b5' : '#b58863';
+                        this.ctx.fillRect(x, y, this.squareSize, this.squareSize);
+                        
+                        // Add subtle square borders
+                        this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+                        this.ctx.lineWidth = 1;
+                        this.ctx.strokeRect(x, y, this.squareSize, this.squareSize);
+                    }
+                }
+
+                this.drawCoordinates();
+                this.drawHighlight();
+            }
+
+            drawCoordinates() {
+                this.ctx.fillStyle = '#333';
+                this.ctx.font = 'bold 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+
+                // File labels (a-h)
+                for (let file = 0; file < 8; file++) {
+                    const letter = String.fromCharCode(97 + file);
+                    const x = file * this.squareSize + this.squareSize / 2;
+                    this.ctx.fillText(letter, x, CONFIG.BOARD_SIZE - 10);
+                    this.ctx.fillText(letter, x, 15);
+                }
+
+                // Rank labels (1-8)
+                this.ctx.textAlign = 'center';
+                for (let rank = 0; rank < 8; rank++) {
+                    const number = (rank + 1).toString();
+                    const y = (7 - rank) * this.squareSize + this.squareSize / 2;
+                    this.ctx.fillText(number, 15, y);
+                    this.ctx.fillText(number, CONFIG.BOARD_SIZE - 15, y);
+                }
+            }
+
+            drawHighlight() {
+                if (!this.highlightedSquare) return;
+
+                const coords = this.notationToCoords(this.highlightedSquare);
+                if (!coords) return;
+
+                const x = coords.file * this.squareSize;
+                const y = (7 - coords.rank) * this.squareSize;
+
+                // Animated pulsing highlight
+                this.pulseTime += 0.1;
+                const alpha = 0.4 + 0.3 * Math.sin(this.pulseTime);
+                
+                this.ctx.fillStyle = `rgba(59, 130, 246, ${alpha})`;
+                this.ctx.fillRect(x, y, this.squareSize, this.squareSize);
+
+                // Highlight border
+                this.ctx.strokeStyle = '#3b82f6';
+                this.ctx.lineWidth = 3;
+                this.ctx.strokeRect(x + 1.5, y + 1.5, this.squareSize - 3, this.squareSize - 3);
+
+                // Schedule next frame for animation
+                this.animationFrame = requestAnimationFrame(() => this.drawBoard());
+            }
+
+            highlightSquare(notation) {
+                this.highlightedSquare = notation;
+                if (this.animationFrame) {
+                    cancelAnimationFrame(this.animationFrame);
+                }
+                this.drawBoard();
+            }
+
+            clearHighlight() {
+                this.highlightedSquare = null;
+                if (this.animationFrame) {
+                    cancelAnimationFrame(this.animationFrame);
+                }
+                this.drawBoard();
+            }
+
+            notationToCoords(notation) {
+                if (!notation || notation.length !== 2) return null;
+                const file = notation.charCodeAt(0) - 97; // a=0, b=1, etc.
+                const rank = parseInt(notation[1]) - 1; // 1=0, 2=1, etc.
+                
+                if (file < 0 || file > 7 || rank < 0 || rank > 7) return null;
+                return { file, rank };
+            }
+
+            coordsToNotation(file, rank) {
+                if (file < 0 || file > 7 || rank < 0 || rank > 7) return null;
+                return String.fromCharCode(97 + file) + (rank + 1);
+            }
+
+            getSquareFromClick(event) {
+                const rect = this.canvas.getBoundingClientRect();
+                const x = event.clientX - rect.left;
+                const y = event.clientY - rect.top;
+                
+                const file = Math.floor(x / this.squareSize);
+                const rank = 7 - Math.floor(y / this.squareSize);
+                
+                return this.coordsToNotation(file, rank);
+            }
+        }
+
+        // Audio Feedback System
+        class AudioManager {
+            constructor() {
+                this.audioContext = null;
+                this.setupAudio();
+            }
+
+            setupAudio() {
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (e) {
+                    console.warn('Audio not supported');
+                }
+            }
+
+            playTone(frequency, duration, volume = 0.1) {
+                if (!this.audioContext) return;
+
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+                gainNode.gain.linearRampToValueAtTime(volume, this.audioContext.currentTime + 0.01);
+                gainNode.gain.linearRampToValueAtTime(0, this.audioContext.currentTime + duration);
+                
+                oscillator.start(this.audioContext.currentTime);
+                oscillator.stop(this.audioContext.currentTime + duration);
+            }
+
+            playSuccess() {
+                this.playTone(523.25, 0.2); // C5
+                setTimeout(() => this.playTone(659.25, 0.2), 100); // E5
+            }
+
+            playError() {
+                this.playTone(220, 0.3); // A3
+            }
+
+            playLevelUp() {
+                this.playTone(523.25, 0.15); // C5
+                setTimeout(() => this.playTone(659.25, 0.15), 100); // E5
+                setTimeout(() => this.playTone(783.99, 0.15), 200); // G5
+                setTimeout(() => this.playTone(1046.50, 0.3), 300); // C6
+            }
+        }
+
+        // Main Game Engine
+        class ChessNomenclatureGame {
+            constructor() {
+                this.gameState = new GameState();
+                this.renderer = new ChessboardRenderer(document.getElementById('chessboard'));
+                this.audioManager = new AudioManager();
+                this.bindElements();
+                this.setupEventListeners();
+                this.updateUI();
+                this.startSessionTimer();
+            }
+
+            bindElements() {
+                // UI Elements
+                this.elements = {
+                    notationInput: document.getElementById('notation-input'),
+                    submitButton: document.getElementById('submit-answer'),
+                    newGameButton: document.getElementById('new-game'),
+                    skipButton: document.getElementById('skip-question'),
+                    toggleModeButton: document.getElementById('toggle-mode'),
+                    hintButton: document.getElementById('hint'),
+                    feedbackElement: document.getElementById('feedback-message'),
+                    
+                    // Score displays
+                    currentScore: document.getElementById('current-score'),
+                    accuracy: document.getElementById('accuracy'),
+                    streak: document.getElementById('streak'),
+                    
+                    // Challenge area
+                    modeIndicator: document.getElementById('mode-indicator'),
+                    challengeTitle: document.getElementById('challenge-title'),
+                    challengeContent: document.getElementById('challenge-content'),
+                    
+                    // Statistics
+                    gamesPlayed: document.getElementById('games-played'),
+                    bestStreak: document.getElementById('best-streak'),
+                    totalCorrect: document.getElementById('total-correct'),
+                    averageTime: document.getElementById('average-time'),
+                    levelProgress: document.getElementById('level-progress'),
+                    levelProgressBar: document.getElementById('level-progress-bar'),
+                    
+                    // Session stats
+                    sessionTime: document.getElementById('session-time'),
+                    questionsAnswered: document.getElementById('questions-answered'),
+                    correctAnswers: document.getElementById('correct-answers'),
+                    wrongAnswers: document.getElementById('wrong-answers'),
+                    currentMode: document.getElementById('current-mode'),
+                    sessionProgressBar: document.getElementById('session-progress-bar')
+                };
+            }
+
+            setupEventListeners() {
+                // Game controls
+                this.elements.newGameButton.addEventListener('click', () => this.startNewGame());
+                this.elements.submitButton.addEventListener('click', () => this.submitAnswer());
+                this.elements.skipButton.addEventListener('click', () => this.skipQuestion());
+                this.elements.toggleModeButton.addEventListener('click', () => this.toggleMode());
+                this.elements.hintButton.addEventListener('click', () => this.showHint());
+
+                // Input handling
+                this.elements.notationInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.submitAnswer();
+                    }
+                });
+
+                this.elements.notationInput.addEventListener('input', (e) => {
+                    this.validateInput(e.target.value);
+                });
+
+                // Canvas clicks
+                this.renderer.canvas.addEventListener('click', (e) => {
+                    if (this.gameState.mode === 'notation-to-square') {
+                        this.handleCanvasClick(e);
+                    }
+                });
+
+                // Keyboard shortcuts
+                document.addEventListener('keydown', (e) => {
+                    if (!this.gameState.isGameActive) return;
+                    
+                    switch(e.key) {
+                        case 'Escape':
+                            this.skipQuestion();
+                            break;
+                        case 'h':
+                        case 'H':
+                            if (e.ctrlKey || e.metaKey) {
+                                e.preventDefault();
+                                this.showHint();
+                            }
+                            break;
+                    }
+                });
+
+                // Window resize
+                window.addEventListener('resize', () => {
+                    this.renderer.setupCanvas();
+                    this.renderer.drawBoard();
+                });
+            }
+
+            startNewGame() {
+                this.gameState.isGameActive = true;
+                this.gameState.score = 0;
+                this.gameState.streak = 0;
+                this.gameState.stats.questionsAnswered = 0;
+                this.gameState.stats.correctAnswers = 0;
+                this.gameState.stats.wrongAnswers = 0;
+                this.gameState.stats.gamesPlayed++;
+                this.gameState.sessionStartTime = Date.now();
+
+                // Enable controls
+                this.elements.notationInput.disabled = false;
+                this.elements.submitButton.disabled = false;
+                this.elements.skipButton.disabled = false;
+                this.elements.toggleModeButton.disabled = false;
+                this.elements.hintButton.disabled = false;
+
+                this.clearFeedback();
+                this.generateChallenge();
+                this.updateUI();
+                
+                // Focus appropriate input
+                if (this.gameState.mode === 'square-to-notation') {
+                    this.elements.notationInput.focus();
+                }
+            }
+
+            generateChallenge() {
+                this.clearTimer();
+                this.gameState.challengeStartTime = Date.now();
+                this.gameState.timeRemaining = CONFIG.TIMER_DURATION;
+
+                if (this.gameState.mode === 'square-to-notation') {
+                    // Show highlighted square, ask for notation
+                    this.gameState.currentSquare = this.gameState.getNextSquare();
+                    this.gameState.currentNotation = null;
+                    
+                    this.renderer.highlightSquare(this.gameState.currentSquare);
+                    this.elements.challengeContent.textContent = 'Highlighted Square';
+                    this.elements.challengeTitle.textContent = 'Enter the notation for the highlighted square';
+                    this.elements.notationInput.value = '';
+                    this.elements.notationInput.focus();
+                    
+                } else {
+                    // Show notation, ask for square click
+                    this.gameState.currentNotation = this.gameState.getNextSquare();
+                    this.gameState.currentSquare = null;
+                    
+                    this.renderer.clearHighlight();
+                    this.elements.challengeContent.textContent = this.gameState.currentNotation.toUpperCase();
+                    this.elements.challengeTitle.textContent = 'Click on the correct square';
+                    this.elements.notationInput.value = '';
+                }
+
+                // Add visual emphasis
+                this.elements.challengeContent.classList.add('highlight');
+                setTimeout(() => {
+                    this.elements.challengeContent.classList.remove('highlight');
+                }, 500);
+
+                this.startTimer();
+                this.updateUI();
+            }
+
+            startTimer() {
+                this.gameState.timer = setInterval(() => {
+                    this.gameState.timeRemaining -= 100;
+                    
+                    if (this.gameState.timeRemaining <= 0) {
+                        this.timeUp();
+                    }
+                }, 100);
+            }
+
+            clearTimer() {
+                if (this.gameState.timer) {
+                    clearInterval(this.gameState.timer);
+                    this.gameState.timer = null;
+                }
+            }
+
+            timeUp() {
+                this.clearTimer();
+                this.handleIncorrectAnswer('Time up!');
+            }
+
+            submitAnswer() {
+                if (!this.gameState.isGameActive || this.gameState.mode !== 'square-to-notation') return;
+
+                const userInput = this.elements.notationInput.value.toLowerCase().trim();
+                const correctAnswer = this.gameState.currentSquare;
+                
+                if (userInput === correctAnswer) {
+                    this.handleCorrectAnswer();
+                } else {
+                    this.handleIncorrectAnswer(`Incorrect! The answer was ${correctAnswer.toUpperCase()}`);
+                }
+            }
+
+            handleCanvasClick(event) {
+                if (!this.gameState.isGameActive || this.gameState.mode !== 'notation-to-square') return;
+
+                const clickedSquare = this.renderer.getSquareFromClick(event);
+                const correctAnswer = this.gameState.currentNotation;
+
+                if (clickedSquare === correctAnswer) {
+                    this.handleCorrectAnswer();
+                } else {
+                    this.handleIncorrectAnswer(`Incorrect! The answer was ${correctAnswer.toUpperCase()}`);
+                }
+            }
+
+            handleCorrectAnswer() {
+                this.clearTimer();
+                const responseTime = Date.now() - this.gameState.challengeStartTime;
+                
+                // Update statistics
+                this.gameState.stats.questionsAnswered++;
+                this.gameState.stats.correctAnswers++;
+                this.gameState.streak++;
+                this.gameState.stats.totalTime += responseTime;
+
+                // Calculate points
+                let points = CONFIG.POINTS.CORRECT;
+                
+                // Speed bonus
+                if (responseTime < CONFIG.SPEED_BONUS_THRESHOLD) {
+                    points += CONFIG.POINTS.SPEED_BONUS;
+                }
+                
+                // Streak multiplier
+                if (this.gameState.streak > 1) {
+                    points = Math.floor(points * Math.pow(CONFIG.POINTS.STREAK_MULTIPLIER, this.gameState.streak - 1));
+                }
+                
+                this.gameState.score += points;
+                
+                // Update best streak
+                if (this.gameState.streak > this.gameState.bestStreak) {
+                    this.gameState.bestStreak = this.gameState.streak;
+                }
+
+                // Update square performance
+                const square = this.gameState.currentSquare || this.gameState.currentNotation;
+                this.gameState.updateSquarePerformance(square, true, responseTime);
+
+                // Audio feedback
+                this.audioManager.playSuccess();
+
+                // Visual feedback
+                this.showFeedback(`Correct! +${points} points`, 'success');
+                this.elements.notationInput.classList.add('correct');
+
+                // Check level progression
+                this.gameState.checkLevelProgression();
+
+                setTimeout(() => {
+                    this.elements.notationInput.classList.remove('correct');
+                    this.generateChallenge();
+                }, 1000);
+
+                this.updateUI();
+                this.gameState.saveToStorage();
+            }
+
+            handleIncorrectAnswer(message) {
+                this.clearTimer();
+                const responseTime = Date.now() - this.gameState.challengeStartTime;
+                
+                // Update statistics
+                this.gameState.stats.questionsAnswered++;
+                this.gameState.stats.wrongAnswers++;
+                this.gameState.streak = 0;
+                this.gameState.stats.totalTime += responseTime;
+
+                // Update square performance
+                const square = this.gameState.currentSquare || this.gameState.currentNotation;
+                this.gameState.updateSquarePerformance(square, false, responseTime);
+
+                // Audio feedback
+                this.audioManager.playError();
+
+                // Visual feedback
+                this.showFeedback(message, 'error');
+                this.elements.notationInput.classList.add('incorrect');
+
+                setTimeout(() => {
+                    this.elements.notationInput.classList.remove('incorrect');
+                    this.generateChallenge();
+                }, 1500);
+
+                this.updateUI();
+                this.gameState.saveToStorage();
+            }
+
+            skipQuestion() {
+                if (!this.gameState.isGameActive) return;
+                
+                const correctAnswer = this.gameState.currentSquare || this.gameState.currentNotation;
+                this.showFeedback(`Skipped. The answer was ${correctAnswer.toUpperCase()}`, 'error');
+                
+                this.gameState.streak = 0;
+                setTimeout(() => this.generateChallenge(), 1000);
+                this.updateUI();
+            }
+
+            toggleMode() {
+                this.gameState.mode = this.gameState.mode === 'square-to-notation' 
+                    ? 'notation-to-square' 
+                    : 'square-to-notation';
+                
+                this.updateUI();
+                if (this.gameState.isGameActive) {
+                    this.generateChallenge();
+                }
+            }
+
+            showHint() {
+                if (!this.gameState.isGameActive) return;
+                
+                const answer = this.gameState.currentSquare || this.gameState.currentNotation;
+                let hint = '';
+                
+                if (this.gameState.mode === 'square-to-notation') {
+                    const file = answer.charAt(0);
+                    const rank = answer.charAt(1);
+                    hint = `File: ${file.toUpperCase()}, Rank: ${rank}`;
+                } else {
+                    const coords = this.renderer.notationToCoords(answer);
+                    if (coords) {
+                        const regions = ['bottom-left', 'bottom-right', 'top-left', 'top-right'];
+                        const region = coords.file < 4 
+                            ? (coords.rank < 4 ? regions[0] : regions[2])
+                            : (coords.rank < 4 ? regions[1] : regions[3]);
+                        hint = `Look in the ${region} area of the board`;
+                    }
+                }
+                
+                this.showFeedback(`Hint: ${hint}`, 'warning');
+            }
+
+            validateInput(value) {
+                // Real-time input validation
+                const cleaned = value.toLowerCase().replace(/[^a-h1-8]/g, '');
+                if (cleaned !== value) {
+                    this.elements.notationInput.value = cleaned;
+                }
+            }
+
+            showFeedback(message, type) {
+                this.elements.feedbackElement.textContent = message;
+                this.elements.feedbackElement.className = `feedback ${type} show`;
+                
+                setTimeout(() => {
+                    this.elements.feedbackElement.classList.remove('show');
+                }, 3000);
+            }
+
+            clearFeedback() {
+                this.elements.feedbackElement.classList.remove('show');
+            }
+
+            startSessionTimer() {
+                setInterval(() => {
+                    if (this.gameState.sessionStartTime) {
+                        this.gameState.stats.sessionTime = Date.now() - this.gameState.sessionStartTime;
+                        this.updateSessionTime();
+                    }
+                }, 1000);
+            }
+
+            updateSessionTime() {
+                const seconds = Math.floor(this.gameState.stats.sessionTime / 1000);
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                this.elements.sessionTime.textContent = 
+                    `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+            }
+
+            updateUI() {
+                // Update live scores
+                this.elements.currentScore.textContent = this.gameState.score;
+                this.elements.streak.textContent = this.gameState.streak;
+                
+                // Calculate accuracy
+                const total = this.gameState.stats.questionsAnswered;
+                const accuracy = total > 0 
+                    ? Math.round((this.gameState.stats.correctAnswers / total) * 100)
+                    : 100;
+                this.gameState.accuracy = accuracy;
+                this.elements.accuracy.textContent = `${accuracy}%`;
+
+                // Update mode indicators
+                const modeText = this.gameState.mode === 'square-to-notation' 
+                    ? 'Square → Notation' 
+                    : 'Notation → Square';
+                this.elements.modeIndicator.textContent = modeText;
+                this.elements.currentMode.textContent = modeText;
+
+                // Update statistics
+                this.elements.gamesPlayed.textContent = this.gameState.stats.gamesPlayed;
+                this.elements.bestStreak.textContent = this.gameState.bestStreak;
+                this.elements.totalCorrect.textContent = this.gameState.stats.correctAnswers;
+                
+                // Average time
+                const avgTime = this.gameState.stats.correctAnswers > 0
+                    ? (this.gameState.stats.totalTime / this.gameState.stats.correctAnswers / 1000)
+                    : 0;
+                this.elements.averageTime.textContent = `${avgTime.toFixed(1)}s`;
+
+                // Level progress
+                const levelName = CONFIG.DIFFICULTY_LEVELS[this.gameState.difficulty].name;
+                this.elements.levelProgress.textContent = `Level ${this.gameState.difficulty}: ${levelName}`;
+                this.elements.levelProgressBar.style.width = `${this.gameState.levelProgress}%`;
+
+                // Session stats
+                this.elements.questionsAnswered.textContent = this.gameState.stats.questionsAnswered;
+                this.elements.correctAnswers.textContent = this.gameState.stats.correctAnswers;
+                this.elements.wrongAnswers.textContent = this.gameState.stats.wrongAnswers;
+
+                // Session progress (based on questions answered in current session)
+                const sessionProgress = Math.min((this.gameState.stats.questionsAnswered / 20) * 100, 100);
+                this.elements.sessionProgressBar.style.width = `${sessionProgress}%`;
+
+                // Update accessibility
+                this.updateAccessibilityInfo();
+            }
+
+            updateAccessibilityInfo() {
+                const gameStatus = document.getElementById('game-status');
+                const boardDescription = document.getElementById('board-description');
+                
+                if (this.gameState.isGameActive) {
+                    gameStatus.textContent = `Current score: ${this.gameState.score}, Streak: ${this.gameState.streak}`;
+                    
+                    if (this.gameState.mode === 'square-to-notation') {
+                        boardDescription.textContent = `Square ${this.gameState.currentSquare} is highlighted`;
+                    } else {
+                        boardDescription.textContent = `Find square ${this.gameState.currentNotation}`;
+                    }
+                }
+            }
+        }
+
+        // Initialize the game
+        let game;
+
+        function initializeGame() {
+            try {
+                game = new ChessNomenclatureGame();
+                console.log('Chess Nomenclature Game initialized successfully');
+            } catch (error) {
+                console.error('Failed to initialize game:', error);
+                document.getElementById('feedback-message').textContent = 
+                    'Failed to initialize game. Please refresh the page.';
+                document.getElementById('feedback-message').className = 'feedback error show';
+            }
+        }
+
+        // Start the game when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeGame);
+        } else {
+            initializeGame();
+        }
+    </script>
+</body>
+</html>
