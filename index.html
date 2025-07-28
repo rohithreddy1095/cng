@@ -454,6 +454,30 @@
             }
         }
 
+        @media (max-width: 768px) {
+            .stats-panel {
+                padding: 15px;
+            }
+            
+            .stat-item {
+                padding: 8px 12px;
+                margin: 4px 0;
+            }
+            
+            .challenge-area {
+                padding: 15px;
+            }
+            
+            .controls {
+                gap: 15px;
+            }
+            
+            .game-controls {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+        }
+
         @media (max-width: 640px) {
             .container {
                 padding: 0.75rem;
@@ -483,7 +507,9 @@
             }
 
             .notation-input {
-                font-size: 1rem;
+                font-size: 16px; /* Prevents zoom on iOS */
+                padding: 12px;
+                text-align: center;
             }
 
             .btn {
@@ -497,6 +523,180 @@
 
             .input-group {
                 flex-direction: column;
+                gap: 8px;
+            }
+        }
+
+        /* Mobile-specific optimizations for better UX */
+        @media (max-width: 480px) {
+            .container {
+                padding: 8px;
+            }
+            
+            /* Hide left stats panel on very small screens to focus on gameplay */
+            .stats-panel:first-of-type {
+                display: none;
+            }
+            
+            /* Keep session stats but make them compact */
+            .stats-panel:last-of-type {
+                order: -1; /* Move to top */
+                margin-bottom: 10px;
+                padding: 10px;
+            }
+            
+            .stats-panel:last-of-type .stat-item {
+                display: inline-block;
+                margin: 2px 4px;
+                padding: 4px 8px;
+                font-size: 0.75em;
+                min-width: auto;
+                white-space: nowrap;
+            }
+            
+            .stats-panel:last-of-type .stats-title {
+                display: none;
+            }
+            
+            /* Minimize challenge instruction noise */
+            .challenge-title {
+                display: none; /* Hide repetitive instruction text */
+            }
+            
+            .mode-indicator {
+                background: var(--accent-color);
+                color: white;
+                padding: 4px 8px;
+                border-radius: 12px;
+                font-size: 0.75em;
+                text-align: center;
+                margin-bottom: 8px;
+                display: inline-block;
+            }
+            
+            .challenge-content {
+                font-size: 1.6em;
+                font-weight: bold;
+                text-align: center;
+                margin-bottom: 12px;
+                padding: 10px;
+                background: var(--bg-secondary);
+                border-radius: 8px;
+                border: 2px solid var(--accent-color);
+            }
+            
+            /* Optimize chess board size */
+            .chessboard-wrapper {
+                margin: 0 auto 15px auto;
+            }
+            
+            #chessboard {
+                width: min(300px, calc(100vw - 20px)) !important;
+                height: min(300px, calc(100vw - 20px)) !important;
+            }
+            
+            /* Better mobile input */
+            .notation-input {
+                font-size: 18px;
+                padding: 15px;
+                border-radius: 8px;
+                width: 100%;
+                max-width: 200px;
+                margin: 0 auto;
+            }
+            
+            .input-group {
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 200px;
+                padding: 12px;
+                font-size: 0.9em;
+            }
+            
+            /* Compact game controls */
+            .game-controls {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+                margin-top: 15px;
+            }
+            
+            .game-controls .btn {
+                padding: 10px 8px;
+                font-size: 0.8em;
+                max-width: none;
+            }
+            
+            .game-controls .btn:first-child {
+                grid-column: 1 / -1; /* New Game spans full width */
+                background: var(--accent-color);
+                color: white;
+                font-size: 0.9em;
+            }
+            
+            /* Compact board controls */
+            .board-controls {
+                margin-bottom: 8px;
+            }
+            
+            .notation-toggle {
+                padding: 6px 12px;
+                font-size: 0.8em;
+            }
+        }
+
+        /* Ultra-compact for very small screens */
+        @media (max-width: 360px) {
+            .container {
+                padding: 5px;
+            }
+            
+            .header {
+                padding: 8px 10px;
+            }
+            
+            .title {
+                font-size: 1.3em;
+            }
+            
+            .live-score {
+                gap: 8px;
+            }
+            
+            .score-value {
+                font-size: 1.1em;
+            }
+            
+            .score-label {
+                font-size: 0.7em;
+            }
+            
+            #chessboard {
+                width: min(270px, calc(100vw - 15px)) !important;
+                height: min(270px, calc(100vw - 15px)) !important;
+            }
+            
+            .challenge-content {
+                font-size: 1.4em;
+                padding: 8px;
+            }
+            
+            .notation-input {
+                font-size: 16px;
+                padding: 12px;
+                max-width: 150px;
+            }
+            
+            .game-controls {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+            
+            .game-controls .btn {
+                font-size: 0.7em;
+                padding: 8px 4px;
             }
         }
 
@@ -1014,21 +1214,32 @@
             }
 
             setupCanvas() {
-                // Handle high DPI displays
+                // Handle high DPI displays and responsive sizing
                 const dpr = window.devicePixelRatio || 1;
                 const rect = this.canvas.getBoundingClientRect();
                 
-                this.canvas.width = CONFIG.BOARD_SIZE * dpr;
-                this.canvas.height = CONFIG.BOARD_SIZE * dpr;
-                this.canvas.style.width = CONFIG.BOARD_SIZE + 'px';
-                this.canvas.style.height = CONFIG.BOARD_SIZE + 'px';
+                // Get the actual display size from CSS
+                const displayWidth = rect.width;
+                const displayHeight = rect.height;
                 
+                // Set the actual canvas size in memory (scaled for retina)
+                this.canvas.width = displayWidth * dpr;
+                this.canvas.height = displayHeight * dpr;
+                
+                // Scale the canvas back down using CSS
+                this.canvas.style.width = displayWidth + 'px';
+                this.canvas.style.height = displayHeight + 'px';
+                
+                // Scale the drawing context so everything draws at the correct size
                 this.ctx.scale(dpr, dpr);
-                this.squareSize = CONFIG.BOARD_SIZE / 8;
+                
+                // Calculate square size based on actual display size
+                this.boardSize = Math.min(displayWidth, displayHeight);
+                this.squareSize = this.boardSize / 8;
             }
 
             drawBoard() {
-                this.ctx.clearRect(0, 0, CONFIG.BOARD_SIZE, CONFIG.BOARD_SIZE);
+                this.ctx.clearRect(0, 0, this.boardSize, this.boardSize);
                 
                 // Draw squares
                 for (let rank = 0; rank < 8; rank++) {
@@ -1057,7 +1268,10 @@
 
             drawCoordinates() {
                 this.ctx.fillStyle = '#333';
-                this.ctx.font = 'bold 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                
+                // Scale font size based on board size for better mobile readability
+                const fontSize = Math.max(10, Math.min(14, this.boardSize / 35));
+                this.ctx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
                 this.ctx.textAlign = 'center';
                 this.ctx.textBaseline = 'middle';
 
@@ -1065,7 +1279,7 @@
                 for (let file = 0; file < 8; file++) {
                     const letter = String.fromCharCode(97 + file);
                     const x = file * this.squareSize + this.squareSize / 2;
-                    this.ctx.fillText(letter, x, CONFIG.BOARD_SIZE - 10);
+                    this.ctx.fillText(letter, x, this.boardSize - 10);
                     this.ctx.fillText(letter, x, 15);
                 }
 
@@ -1075,7 +1289,7 @@
                     const number = (rank + 1).toString();
                     const y = (7 - rank) * this.squareSize + this.squareSize / 2;
                     this.ctx.fillText(number, 15, y);
-                    this.ctx.fillText(number, CONFIG.BOARD_SIZE - 15, y);
+                    this.ctx.fillText(number, this.boardSize - 15, y);
                 }
             }
 
