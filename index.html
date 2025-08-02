@@ -154,64 +154,80 @@
             transform: scale(1.02);
         }
 
-        /* Challenge Display */
-        .challenge-area {
-            background: var(--secondary-bg);
-            border-radius: 16px;
-            padding: 1.5rem;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            text-align: center;
-        }
-
-        .challenge-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 1rem;
-        }
-
-        .challenge-content {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--highlight-color);
-            padding: 1.5rem;
-            background: var(--accent-bg);
-            border-radius: 12px;
-            border: 2px solid var(--border-color);
-            margin-bottom: 1rem;
-            min-height: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        /* Chessboard Wrapper with Overlay */
+        .chessboard-wrapper {
             position: relative;
-            overflow: hidden;
+            display: inline-block;
+            margin: 0 auto;
         }
 
-        .challenge-content::before {
-            content: '';
+        /* Notation Overlay on Chess Board */
+        .notation-overlay {
             position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            transition: left 0.5s ease;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
         }
 
-        .challenge-content.highlight::before {
-            left: 100%;
+        .notation-overlay.hidden {
+            opacity: 0;
+            transform: translateX(-50%) translateY(-10px);
+        }
+
+        .notation-display {
+            background: rgba(59, 130, 246, 0.95);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            min-width: 80px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .notation-display.pulse {
+            animation: notationPulse 1.5s infinite;
+        }
+
+        @keyframes notationPulse {
+            0%, 100% { transform: scale(1); opacity: 0.95; }
+            50% { transform: scale(1.05); opacity: 1; }
+        }
+
+        /* Game Controls Container */
+        .game-controls-container {
+            text-align: center;
+            margin-top: 20px;
         }
 
         .mode-indicator {
             display: inline-block;
-            padding: 0.5rem 1rem;
+            padding: 6px 12px;
             background: var(--gradient-accent);
             color: white;
-            border-radius: 20px;
-            font-size: 0.875rem;
+            border-radius: 16px;
+            font-size: 0.8rem;
             font-weight: 500;
-            margin-bottom: 1rem;
+            margin-bottom: 15px;
+        }
+
+        .input-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        /* Hide input section when in click mode */
+        .input-section.hidden {
+            display: none;
         }
 
         /* Controls */
@@ -500,10 +516,10 @@
                 font-size: 1.25rem;
             }
 
-            .challenge-content {
-                font-size: 1.5rem;
-                padding: 1rem;
-                min-height: 80px;
+            .notation-display {
+                font-size: 1.2rem;
+                padding: 6px 12px;
+                min-width: 60px;
             }
 
             .notation-input {
@@ -574,15 +590,10 @@
                 display: inline-block;
             }
             
-            .challenge-content {
-                font-size: 1.6em;
-                font-weight: bold;
-                text-align: center;
-                margin-bottom: 12px;
-                padding: 10px;
-                background: var(--bg-secondary);
-                border-radius: 8px;
-                border: 2px solid var(--accent-color);
+            .notation-display {
+                font-size: 1.3rem;
+                padding: 6px 12px;
+                min-width: 50px;
             }
             
             /* Optimize chess board size */
@@ -679,9 +690,10 @@
                 height: min(270px, calc(100vw - 15px)) !important;
             }
             
-            .challenge-content {
-                font-size: 1.4em;
-                padding: 8px;
+            .notation-display {
+                font-size: 1.1rem;
+                padding: 4px 8px;
+                min-width: 40px;
             }
             
             .notation-input {
@@ -919,40 +931,37 @@
                     <canvas id="chessboard" width="480" height="480" role="img" aria-label="Chess board for nomenclature practice">
                         <p>Your browser does not support the HTML5 canvas element. Please upgrade to a modern browser to play this game.</p>
                     </canvas>
+                    
+                    <!-- Notation Overlay - appears on the board -->
+                    <div class="notation-overlay" id="notation-overlay" style="display: none;">
+                        <div class="notation-display" id="notation-display"></div>
+                    </div>
                 </div>
                 
-                <!-- Challenge Display -->
-                <div class="challenge-area" role="region" aria-label="Current Challenge">
+                <!-- Minimal Controls -->
+                <div class="game-controls-container">
                     <div class="mode-indicator" id="mode-indicator" aria-live="polite">Square → Notation</div>
-                    <h2 class="challenge-title" id="challenge-title">Find the notation for the highlighted square</h2>
-                    <div class="challenge-content" id="challenge-content" aria-live="polite">Click "New Game" to start</div>
                     
-                    <!-- Controls -->
-                    <div class="controls">
-                        <div class="input-group">
-                            <label for="notation-input" class="sr-only">Enter chess notation</label>
-                            <input 
-                                type="text" 
-                                id="notation-input" 
-                                class="notation-input" 
-                                placeholder="Enter notation (e.g. e4)" 
-                                maxlength="3"
-                                autocomplete="off"
-                                aria-describedby="feedback-message"
-                                disabled
-                            >
-                            <button class="btn btn-primary" id="submit-answer" disabled>
-                                Submit
-                            </button>
-                        </div>
-                        
-                        <div class="game-controls">
-                            <button class="btn btn-success" id="new-game">New Game</button>
-                            <button class="btn btn-secondary" id="skip-question" disabled>Skip</button>
-                            <button class="btn btn-secondary" id="toggle-mode" disabled>Switch Mode</button>
-                            <button class="btn btn-secondary" id="hint" disabled>Hint</button>
-                            <button class="btn btn-secondary" id="settings">⚙️ Settings</button>
-                        </div>
+                    <div class="input-section" id="input-section">
+                        <input 
+                            type="text" 
+                            id="notation-input" 
+                            class="notation-input" 
+                            placeholder="Type notation (e.g. e4)" 
+                            maxlength="3"
+                            autocomplete="off"
+                            aria-describedby="feedback-message"
+                            disabled
+                        >
+                        <button class="btn btn-primary" id="submit-answer" disabled>Submit</button>
+                    </div>
+                    
+                    <div class="game-controls">
+                        <button class="btn btn-success" id="new-game">New Game</button>
+                        <button class="btn btn-secondary" id="skip-question" disabled>Skip</button>
+                        <button class="btn btn-secondary" id="toggle-mode" disabled>Switch Mode</button>
+                        <button class="btn btn-secondary" id="hint" disabled>Hint</button>
+                        <button class="btn btn-secondary" id="settings">⚙️ Settings</button>
                     </div>
                     
                     <!-- Feedback -->
@@ -1421,6 +1430,7 @@
                 this.bindElements();
                 this.setupEventListeners();
                 this.initializeNotationToggle();
+                this.hideNotationOverlay(); // Hide overlay initially
                 this.updateUI();
                 this.startSessionTimer();
             }
@@ -1448,8 +1458,8 @@
                     
                     // Challenge area
                     modeIndicator: document.getElementById('mode-indicator'),
-                    challengeTitle: document.getElementById('challenge-title'),
-                    challengeContent: document.getElementById('challenge-content'),
+                    notationDisplay: document.getElementById('notation-display'),
+                    inputSection: document.getElementById('input-section'),
                     
                     // Statistics
                     gamesPlayed: document.getElementById('games-played'),
@@ -1580,36 +1590,53 @@
                 this.gameState.challengeStartTime = Date.now();
                 this.gameState.timeRemaining = CONFIG.TIMER_DURATION;
 
+                // Show the notation overlay
+                this.showNotationOverlay();
+
                 if (this.gameState.mode === 'square-to-notation') {
-                    // Show highlighted square, ask for notation
+                    // Show highlighted square, user types notation
                     this.gameState.currentSquare = this.gameState.getNextSquare();
                     this.gameState.currentNotation = null;
                     
                     this.renderer.highlightSquare(this.gameState.currentSquare);
-                    this.elements.challengeContent.textContent = 'Highlighted Square';
-                    this.elements.challengeTitle.textContent = 'Enter the notation for the highlighted square';
+                    this.elements.notationDisplay.textContent = '?';
+                    this.elements.inputSection.classList.remove('hidden');
                     this.elements.notationInput.value = '';
                     this.elements.notationInput.focus();
                     
                 } else {
-                    // Show notation, ask for square click
+                    // Show notation, user clicks square
                     this.gameState.currentNotation = this.gameState.getNextSquare();
                     this.gameState.currentSquare = null;
                     
                     this.renderer.clearHighlight();
-                    this.elements.challengeContent.textContent = this.gameState.currentNotation.toUpperCase();
-                    this.elements.challengeTitle.textContent = 'Click on the correct square';
+                    this.elements.notationDisplay.textContent = this.gameState.currentNotation.toUpperCase();
+                    this.elements.inputSection.classList.add('hidden');
                     this.elements.notationInput.value = '';
                 }
 
                 // Add visual emphasis
-                this.elements.challengeContent.classList.add('highlight');
+                this.elements.notationDisplay.classList.add('pulse');
                 setTimeout(() => {
-                    this.elements.challengeContent.classList.remove('highlight');
-                }, 500);
+                    this.elements.notationDisplay.classList.remove('pulse');
+                }, 1500);
 
                 this.startTimer();
                 this.updateUI();
+            }
+
+            showNotationOverlay() {
+                const overlay = this.elements.notationDisplay.parentElement;
+                overlay.style.display = 'block';
+                overlay.classList.remove('hidden');
+            }
+
+            hideNotationOverlay() {
+                const overlay = this.elements.notationDisplay.parentElement;
+                overlay.classList.add('hidden');
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 300); // Wait for transition to complete
             }
 
             startTimer() {
